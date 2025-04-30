@@ -153,7 +153,7 @@ def create_graph(_, user_input, file_data, file_name):
     if code_block_match:
         # Extract and clean the code
         code_block = code_block_match.group(1).strip()
-        cleaned_code = re.sub(r"(?m)^\s*fig\.show\(\)\s*$", "", code_block)  # Fix: remove unnecessary show() call
+        cleaned_code = re.sub(r"(?m)^\s*fig\.show\(\)\s*$", "", code_block)  
         fig = get_fig_from_code(cleaned_code)
         return dcc.Graph(figure = fig),result_output
     else:
