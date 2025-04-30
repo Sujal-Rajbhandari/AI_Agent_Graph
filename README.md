@@ -40,3 +40,8 @@ Make sure to replace your username, password, localhost and databasename
 ```bash
 engine = create_engine("mysql+mysqlconnector://username:password@localhost:3306/database")
 ```
+<h2>4. Run the application</h2>
+
+```bash
+python app.py #replace app.py with your main file
+```
