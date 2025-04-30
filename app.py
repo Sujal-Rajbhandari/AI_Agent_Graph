@@ -59,7 +59,7 @@ def parse_contents(contents, filename):
     ])
 
 def fetch_data_from_db():
-    engine = create_engine("mysql+mysqlconnector://root:De@thisnear1@localhost:3306/agent_db")
+    engine = create_engine("mysql+mysqlconnector://username:password@localhost:3306/database")
     query = "SELECT * FROM tdm_500_movies"
     df = pd.read_sql(query, engine)
     return df
