@@ -57,9 +57,10 @@ def parse_contents(contents, filename):
         dcc.Store(id="stored-file-name", data=filename),
         html.Hr()
     ])
+
 def fetch_data_from_db():
-    engine = create_engine("postgresql://username:password@localhost:5432/mydatabase")
-    query = "SELECT * FROM sales_data"
+    engine = create_engine("mysql+mysqlconnector://root:De@thisnear1@localhost:3306/agent_db")
+    query = "SELECT * FROM tdm_500_movies"
     df = pd.read_sql(query, engine)
     return df
 
@@ -117,7 +118,7 @@ def create_graph(_, user_input, file_data, file_name):
         df = fetch_data_from_db()
     else:
         df = pd.DataFrame(file_data)
-    csv_string = df.head().to_string(index=False)
+    csv_string = df.head(10).to_string(index=False)
     # df = pd.DataFrame(file_data)
     # df_5_rows = df.head()
     # csv_string = df_5_rows.to_string(index=False)
@@ -127,6 +128,8 @@ def create_graph(_, user_input, file_data, file_name):
             "You are a data visualization expert. Your task is to create a graph using the Plotly library (not matplotlib). ..."
             "You are a data visualization expert. Your task is to create a graph using libraries like matplotlib or plotly. "
             "You are given a {name_of_file} file. Here are the first 5 rows of the data: {data}. "
+            "You are a data visualization and SQL expert. Generate a SQL query to extract the required data from a MySQL table called 'tmdb_5000_movies'. "
+            "Then generate Plotly code to visualize it. Use 'sql_query' and 'fig' variables.
             "Based on user instructions, generate the necessary code to create a graph and store it in a variable 'fig'. "
             "Make sure the code contains a 'fig' variable which represents the plot you generate."),
         MessagesPlaceholder(variable_name="messages"),
@@ -137,7 +140,7 @@ def create_graph(_, user_input, file_data, file_name):
     response = chain.invoke({
         "messages": [HumanMessage(content=user_input)],
         "data": csv_string,
-        "name_of_file": file_name
+        "name_of_file": file_name or "Datebase"
     })
 
     result_output = response.content
