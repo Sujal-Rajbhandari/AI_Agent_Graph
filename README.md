@@ -16,7 +16,7 @@ This application uses Groq AI to generate graph based on client's prompt. The ap
 <h2>1. Clone repo</h2>
 
 ```bash
-git clone https://github.com/your-username/agentic-ai-graph.git
+git clone https://github.com/Sujal-Rajbhandari/agentic-ai-graph.git
 cd agentic-ai-graph
 ```
 
