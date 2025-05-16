@@ -10,7 +10,12 @@ This application uses Groq AI to generate graph based on client's prompt. The ap
 <li>LLM generate charts and Plotly code</li>
 </ul>
 
+<h3>Screenshot</h3>
+
 ![Screenshot 2025-05-16 142221](https://github.com/user-attachments/assets/03a274b5-1ee4-4043-8791-88dbe28a4b1e)
+
+![Screenshot 2025-05-16 163902](https://github.com/user-attachments/assets/5f752cf0-cf2f-4a9c-83a9-44ae9c2c00b8)
+![Screenshot 2025-05-16 163919](https://github.com/user-attachments/assets/3a4219e1-01fb-4fc9-a1d4-b03fb66b7cf7)
 
 
 <h2>Example Use case</h2>
