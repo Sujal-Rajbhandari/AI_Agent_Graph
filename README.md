@@ -6,6 +6,7 @@ This application uses Groq AI to generate graph based on client's prompt. The ap
 <ul>
 <li>Upload CSV or XML data</li>
 <li>Connect to local MySQL</li>
+<li>Graph from database</li>
 <li>LLM generate charts and Plotly code</li>
 </ul>
 
