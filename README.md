@@ -1,6 +1,6 @@
 <h1 align = "center">Agentic AI for auto generate graphs</h1>
 
-This application uses Groq AI to generate graph based on client's prompt. The application is able to take both dataframe and database and generate visualizations. <br> 
+This application uses Gemini AI to generate graph based on client's prompt. The application is able to take both dataframe and database and generate visualizations. <br> 
 
 <h2>Features</h2>
 <ul>
