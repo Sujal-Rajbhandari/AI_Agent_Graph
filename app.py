@@ -1,9 +1,10 @@
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv, find_dotenv
 from dash import Dash, html, dcc, callback, Output, Input, State
 from sqlalchemy import create_engine
+from dash import callback
 
 import dash_ag_grid as dag
 import pandas as pd
@@ -11,40 +12,36 @@ import re
 import base64
 import io
 import os
-import plotly.express as px
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("Agg") #disable GUi display 
+# import plotly.express as px
 
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-model = ChatGroq(
-    api_key=GROQ_API_KEY,
-    model="llama3-70b-8192",
+model = ChatGoogleGenerativeAI(
+    api_key=GEMINI_API_KEY,
+    model="gemini-1.5-flash"
 )
 
 #function to extract the figure from generated code
 def get_fig_from_code(code):
-    local_variables = {}  # Initialize as an empty dictionary
+    local_variables = {}  
     exec(code, {}, local_variables)
     return local_variables.get("fig")
-        
-#function parse the uploaded file
+
+# upload file
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(",")
     decoded = base64.b64decode(content_string)
     
     try:
         if "csv" in filename:
-            df = pd.read_csv(
-                io.StringIO(decoded.decode("utf-8")))
+            df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
         elif "xls" in filename:
             df = pd.read_excel(io.BytesIO(decoded))
     except Exception as e:
         print(e)
-        return html.Div(["ther was an error processing this file"])
+        return html.Div(["There was an error processing this file"])
 
     return html.Div([
         html.H5(filename),
@@ -59,15 +56,18 @@ def parse_contents(contents, filename):
     ])
 
 def fetch_data_from_db():
-    engine = create_engine("mysql+mysqlconnector://root:resimator@localhost:3306/agent_db")
-    query = "SELECT * FROM tdm_500_movies"
+    engine = create_engine("mysql+mysqlconnector://root:De%40thisnear1@localhost:3306/housing_db")
+    query = "SELECT * FROM housing_us LIMIT 100"
     df = pd.read_sql(query, engine)
     return df
 
-#dash app
+# Dash app layout
 app = Dash(suppress_callback_exceptions=True)
-app.layout = [
-    html.H1("Agentic AI for creating graphs"),
+app.layout = html.Div([
+    html.H1("Agentic AI for Creating Graphs"),
+    dcc.Store(id="stored-data"),
+    dcc.Store(id="stored-file-name"),
+
     dcc.Upload(
         id="upload-data",
         children=html.Div(["Drag and drop or ", html.A("Select a File")]),
@@ -84,16 +84,15 @@ app.layout = [
         multiple=True,
     ),
     html.Div(id="output-grid"),
-    dcc.Textarea(id="user-request", style={"width": "50%", "height": "50", "margin-top": 20}),
+    dcc.Textarea(id="user-request", style={"width": "50%", "height": "50px", "margin-top": 20}),
     html.Br(),
     html.Button("Submit", id="my-button"),
     dcc.Loading([
         html.Div(id="my-figure", children=""),
         dcc.Markdown(id="content", children="")
     ], type="cube")
-]
+])
 
-#Callback for uploading files
 @callback(
     Output("output-grid", "children"),
     Input("upload-data", "contents"),
@@ -104,8 +103,7 @@ def update_output(list_of_contents, list_of_names):
         return [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names)]
     return html.Div("No file uploaded")
 
-#allback for creating graph based on user input
-@callback(
+@app.callback(
     Output("my-figure", "children"),
     Output("content", "children"),
     Input("my-button", "n_clicks"),
@@ -113,51 +111,51 @@ def update_output(list_of_contents, list_of_names):
     State("stored-data", "data"),
     State("stored-file-name", "data")
 )
-def create_graph(_, user_input, file_data, file_name):
-    if file_name is None:
+def create_graph(n_click, user_input, file_data, file_name):
+    print("Submit clicked", n_click, user_input)
+    if not n_click:
+        return "",""
+    
+    if file_name is None or file_data is None:
         df = fetch_data_from_db()
+        source_name = "Database"
     else:
         df = pd.DataFrame(file_data)
+        source_name = file_name
+
     csv_string = df.head(10).to_string(index=False)
-    # df = pd.DataFrame(file_data)
-    # df_5_rows = df.head()
-    # csv_string = df_5_rows.to_string(index=False)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", 
-            "You are a data visualization expert. Your task is to create a graph using the Plotly library (not matplotlib). ..."
-            "You are a data visualization expert. Your task is to create a graph using libraries like matplotlib or plotly. "
-            "You are given a {name_of_file} file. Here are the first 5 rows of the data: {data}. "
-            "You are a data visualization and SQL expert. Generate a SQL query to extract the required data from a MySQL table called 'tmdb_5000_movies'. "
-            "Then generate Plotly code to visualize it. Use 'sql_query' and 'fig' variables.
-            "Based on user instructions, generate the necessary code to create a graph and store it in a variable 'fig'. "
-            "Make sure the code contains a 'fig' variable which represents the plot you generate."),
+         "You are a data visualization expert. Your task is to create a graph using the Plotly library (not matplotlib). "
+         "You are a data visualization and SQL expert. Generate a SQL query to extract the required data from a MySQL table called housing_us. "
+         "Then generate Plotly code to visualize it. Use 'sql_query' and 'fig' variables. "
+         "Based on user instructions, generate the necessary code to create a graph and store it in a variable 'fig'. "
+         "Make sure the code contains a 'fig' variable which represents the plot you generate."),
         MessagesPlaceholder(variable_name="messages"),
     ])
 
-    # Chain the prompt and model
     chain = prompt | model
     response = chain.invoke({
         "messages": [HumanMessage(content=user_input)],
         "data": csv_string,
-        "name_of_file": file_name or "Datebase"
+        "name_of_file": source_name
     })
 
     result_output = response.content
     print(result_output)
 
-    # Search for the Python code block in the response
     code_block_match = re.search(r"```(?:python)?\n(.*?)```", result_output, re.DOTALL)
     print(code_block_match)
 
     if code_block_match:
-        # Extract and clean the code
         code_block = code_block_match.group(1).strip()
         cleaned_code = re.sub(r"(?m)^\s*fig\.show\(\)\s*$", "", code_block)  
         fig = get_fig_from_code(cleaned_code)
-        return dcc.Graph(figure = fig),result_output
+        return dcc.Graph(figure=fig), result_output
     else:
         return "", result_output
 
 if __name__ == "__main__":
-    app.run(debug=False, port=8008) 
+    app.run(debug=False, port=8008)
+
