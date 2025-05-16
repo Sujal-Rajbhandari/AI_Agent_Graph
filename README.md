@@ -8,6 +8,7 @@ This application uses Groq AI to generate graph based on client's prompt. The ap
 <li>Connect to local MySQL</li>
 <li>LLM generate charts and Plotly code</li>
 </ul>
+![Screenshot 2025-05-16 142221](https://github.com/user-attachments/assets/3135611b-069f-4747-a945-854a3e20aec2)
 
 <h2>Example Use case</h2>
 <b>Prompt</b>: "Create a bar gaph showing top movies with highest revenue"
